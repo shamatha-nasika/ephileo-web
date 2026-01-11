@@ -28,6 +28,7 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -42,14 +43,17 @@ export default function Home() {
       setScrollProgress(Math.min(value * 5, 1)); // Scale for hero section only
     });
 
-    // Track scroll position for scroll-to-top button
+    // Track scroll position for scroll-to-top button (only if user has interacted)
     const handleScroll = () => {
-      const scrolled = window.scrollY;
-      const windowHeight = window.innerHeight;
-      setShowScrollTop(scrolled > windowHeight);
+      if (hasInteracted) {
+        const scrolled = window.scrollY;
+        const windowHeight = window.innerHeight;
+        // Show button after scrolling past 1 viewport (projects section starts around viewport height)
+        setShowScrollTop(scrolled > windowHeight * 0.8);
+      }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
     // GSAP animations for sections with improved performance
     const sections = gsap.utils.toArray('.animate-section');
@@ -78,7 +82,7 @@ export default function Home() {
       window.removeEventListener('scroll', handleScroll);
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
-  }, [scrollYProgress]);
+  }, [scrollYProgress, hasInteracted, showScrollTop]);
 
   const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -123,7 +127,16 @@ export default function Home() {
   };
 
   const scrollToTop = () => {
+    // Hide button immediately
+    setShowScrollTop(false);
+    setHasInteracted(false);
+
+    // Then scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSceneInteraction = () => {
+    setHasInteracted(true);
   };
 
   return (
@@ -137,7 +150,7 @@ export default function Home() {
       >
         {/* 3D Canvas */}
         <motion.div className="absolute inset-0 z-0" style={{ opacity: sceneOpacity }}>
-          <PinScene scrollProgress={scrollProgress} />
+          <PinScene scrollProgress={scrollProgress} onInteraction={handleSceneInteraction} />
         </motion.div>
 
         {/* Hero Content */}

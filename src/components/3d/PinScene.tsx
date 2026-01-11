@@ -483,15 +483,18 @@ function Dog({ position }: { position: [number, number, number] }) {
 function TelephoneBooth({
   position,
   rotation = [0, 0, 0],
+  onInteraction,
 }: {
   position: [number, number, number];
   rotation?: [number, number, number];
+  onInteraction?: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const frameColor = hovered ? '#d10000' : '#b00000';
   const glow = hovered ? 0.45 : 0.18;
 
   const handleClick = () => {
+    onInteraction?.();
     const contactSection = document.getElementById('contact');
     if (contactSection) {
       contactSection.scrollIntoView({ behavior: 'smooth' });
@@ -825,7 +828,7 @@ function Road() {
 }
 
 // Plaza to fill space where the garden was removed
-function Plaza({ onFirePitClick }: { onFirePitClick: () => void }) {
+function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; onInteraction?: () => void }) {
   const [deskHover, setDeskHover] = useState(false);
   const [fireHover, setFireHover] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -852,6 +855,7 @@ function Plaza({ onFirePitClick }: { onFirePitClick: () => void }) {
   }, []);
 
   const handleHelpClick = () => {
+    onInteraction?.();
     const aboutSection = document.getElementById('about');
     if (aboutSection) {
       aboutSection.scrollIntoView({ behavior: 'smooth' });
@@ -1129,7 +1133,7 @@ function Plaza({ onFirePitClick }: { onFirePitClick: () => void }) {
       <Dog position={[1.45, 0, 0.25]} />
 
       {/* Telephone booth */}
-      <TelephoneBooth position={isMobile ? [1.6, 0, -2.35] : [1, 0, -2.25]} rotation={[0, 0, 0]} />
+      <TelephoneBooth position={isMobile ? [1.6, 0, -2.35] : [1, 0, -2.25]} rotation={[0, 0, 0]} onInteraction={onInteraction} />
 
       {/* Low bollards as edge definition instead of vegetation */}
       {Array.from({ length: 18 }, (_, i) => i - 9).map((i) => (
@@ -1203,7 +1207,7 @@ function Buildings({ onBuildingClick }: { onBuildingClick: (id: string) => void 
   );
 }
 
-function Scene({ onBuildingClick, onFirePitClick }: { onBuildingClick: (id: string) => void; onFirePitClick: () => void }) {
+function Scene({ onBuildingClick, onFirePitClick, onInteraction }: { onBuildingClick: (id: string) => void; onFirePitClick: () => void; onInteraction?: () => void }) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -1250,7 +1254,7 @@ function Scene({ onBuildingClick, onFirePitClick }: { onBuildingClick: (id: stri
       <Suspense fallback={null}>
         <Ground />
         <Road />
-        <Plaza onFirePitClick={onFirePitClick} />
+        <Plaza onFirePitClick={onFirePitClick} onInteraction={onInteraction} />
         <StreetLamps />
         <BackgroundBuildings />
         {/* Shop building on this side of the road */}
@@ -1290,17 +1294,31 @@ function Scene({ onBuildingClick, onFirePitClick }: { onBuildingClick: (id: stri
 
 interface PinSceneProps {
   scrollProgress: number;
+  onInteraction?: () => void;
 }
 
-export default function PinScene({ scrollProgress }: PinSceneProps) {
+export default function PinScene({ scrollProgress, onInteraction }: PinSceneProps) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    // Fade in on mount with a slight delay to ensure everything is loaded
+    if (containerRef.current) {
+      gsap.fromTo(
+        containerRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.8, ease: 'power2.out', delay: 0.1 }
+      );
+    }
+  }, []);
+
   const handleBuildingClick = (projectId: string) => {
+    onInteraction?.();
     if (containerRef.current) {
       gsap.to(containerRef.current, {
         opacity: 0,
-        duration: 0.3,
+        duration: 0.5,
+        ease: 'power2.in',
         onComplete: () => {
           router.push(`/projects/${projectId}`);
         },
@@ -1309,6 +1327,7 @@ export default function PinScene({ scrollProgress }: PinSceneProps) {
   };
 
   const handleFirePitClick = () => {
+    onInteraction?.();
     const projectsSection = document.getElementById('projects');
     if (projectsSection) {
       projectsSection.scrollIntoView({ behavior: 'smooth' });
@@ -1318,9 +1337,9 @@ export default function PinScene({ scrollProgress }: PinSceneProps) {
   };
 
   return (
-    <div ref={containerRef} className="w-full h-full">
+    <div ref={containerRef} className="w-full h-full" style={{ opacity: 0 }}>
       <Canvas shadows dpr={[1, 2]}>
-        <Scene onBuildingClick={handleBuildingClick} onFirePitClick={handleFirePitClick} />
+        <Scene onBuildingClick={handleBuildingClick} onFirePitClick={handleFirePitClick} onInteraction={onInteraction} />
       </Canvas>
     </div>
   );

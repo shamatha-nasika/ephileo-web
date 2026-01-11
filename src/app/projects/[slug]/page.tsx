@@ -19,10 +19,24 @@ export default function ProjectPage() {
       gsap.fromTo(
         containerRef.current,
         { opacity: 0 },
-        { opacity: 1, duration: 0.5 }
+        { opacity: 1, duration: 0.8, ease: 'power2.out', delay: 0.1 }
       );
     }
   }, []);
+
+  const handleBackClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (containerRef.current) {
+      gsap.to(containerRef.current, {
+        opacity: 0,
+        duration: 0.5,
+        ease: 'power2.in',
+        onComplete: () => {
+          router.push('/');
+        },
+      });
+    }
+  };
 
   if (!project) {
     return (
@@ -41,7 +55,7 @@ export default function ProjectPage() {
   }
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-black">
+    <div ref={containerRef} className="min-h-screen bg-black" style={{ opacity: 0 }}>
       {/* Back button */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
@@ -49,28 +63,27 @@ export default function ProjectPage() {
         transition={{ duration: 0.5, delay: 0.2 }}
         className="fixed top-6 left-6 z-50"
       >
-        <Link href="/">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md text-white text-sm font-medium hover:bg-white/20 transition-colors cursor-pointer"
+        <motion.button
+          onClick={handleBackClick}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md text-white text-sm font-medium hover:bg-white/20 transition-colors cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            Back
-          </motion.button>
-        </Link>
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          Back
+        </motion.button>
       </motion.div>
 
       {/* Hero Section */}
