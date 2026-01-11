@@ -515,9 +515,9 @@ function TelephoneBooth({
 
   const sidePanePositions = useMemo(
     () => [
-      { pos: [0.175, 0.72, 0], rot: [0, Math.PI / 2, 0] },
-      { pos: [-0.175, 0.72, 0], rot: [0, Math.PI / 2, 0] },
-      { pos: [0, 0.72, -0.175], rot: [0, 0, 0] },
+      { pos: [0.175, 0.72, 0] as [number, number, number], rot: [0, Math.PI / 2, 0] as [number, number, number] },
+      { pos: [-0.175, 0.72, 0] as [number, number, number], rot: [0, Math.PI / 2, 0] as [number, number, number] },
+      { pos: [0, 0.72, -0.175] as [number, number, number], rot: [0, 0, 0] as [number, number, number] },
     ],
     []
   );
@@ -998,6 +998,63 @@ function Plaza() {
           <boxGeometry args={[0.2, 0.1, 0.02]} />
           <meshStandardMaterial color="#0b4c6d" emissive={deskHover ? '#0b4c6d' : '#052736'} emissiveIntensity={deskHover ? 0.5 : 0.15} />
         </mesh>
+
+        {/* Laptop */}
+        <group position={[-0.05, 0.23, -0.05]} rotation={[0, Math.PI / 6, 0]}>
+          {/* Laptop base/keyboard */}
+          <mesh position={[0, 0.008, 0]} castShadow receiveShadow>
+            <boxGeometry args={[0.18, 0.015, 0.13]} />
+            <meshStandardMaterial color="#2a2a2a" roughness={0.3} metalness={0.7} />
+          </mesh>
+
+          {/* Keyboard keys */}
+          {Array.from({ length: 24 }, (_, i) => {
+            const row = Math.floor(i / 8);
+            const col = i % 8;
+            return (
+              <mesh
+                key={`key-${i}`}
+                position={[-0.07 + col * 0.02, 0.017, -0.05 + row * 0.02]}
+                castShadow
+              >
+                <boxGeometry args={[0.015, 0.002, 0.015]} />
+                <meshStandardMaterial color="#1a1a1a" roughness={0.5} metalness={0.3} />
+              </mesh>
+            );
+          })}
+
+          {/* Touchpad */}
+          <mesh position={[0, 0.017, 0.04]} castShadow>
+            <boxGeometry args={[0.07, 0.002, 0.05]} />
+            <meshStandardMaterial color="#1a1a1a" roughness={0.4} metalness={0.4} />
+          </mesh>
+
+          {/* Laptop screen */}
+          <mesh position={[0, 0.06, -0.065]} rotation={[-Math.PI / 2.8, 0, 0]} castShadow receiveShadow>
+            <boxGeometry args={[0.18, 0.11, 0.01]} />
+            <meshStandardMaterial color="#1a1a1a" roughness={0.3} metalness={0.7} />
+          </mesh>
+
+          {/* Screen display (glowing) */}
+          <mesh position={[0, 0.06, -0.063]} rotation={[-Math.PI / 2.8, 0, 0]}>
+            <boxGeometry args={[0.16, 0.09, 0.005]} />
+            <meshStandardMaterial
+              color="#ffffff"
+              emissive="#ffffff"
+              emissiveIntensity={deskHover ? 1.2 : 0.8}
+              roughness={0.1}
+              metalness={0.05}
+            />
+          </mesh>
+
+          {/* Screen light */}
+          <pointLight
+            position={[0, 0.07, -0.05]}
+            color="#ffffff"
+            intensity={deskHover ? 1.2 : 0.8}
+            distance={1}
+          />
+        </group>
       </group>
 
       {/* People near help desk */}
