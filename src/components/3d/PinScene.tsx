@@ -701,7 +701,7 @@ function Buildings({ onBuildingClick }: { onBuildingClick: (id: string) => void 
   const buildingConfigs = isMobile ? buildingConfigsMobile : buildingConfigsDesktop;
 
   // Map project indices to building positions
-  const positionMap = [2, 1, 0]; // Roamates->right, Chain->middle, Escape->left
+  const positionMap = [1, 2, 0]; // Roamates->middle, Chain->right, Escape->left
 
   return (
     <>
