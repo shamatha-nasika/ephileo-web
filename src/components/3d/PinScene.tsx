@@ -180,7 +180,7 @@ function Snow() {
 }
 
 // Realistic fire with billboarded sprites
-function Fire({ position }: { position: [number, number, number] }) {
+function Fire({ position, scale = 1 }: { position: [number, number, number]; scale?: number }) {
   const count = 40;
   const particlesRef = useRef<THREE.Group>(null);
 
@@ -277,7 +277,7 @@ function Fire({ position }: { position: [number, number, number] }) {
   });
 
   return (
-    <group ref={particlesRef}>
+    <group ref={particlesRef} scale={scale}>
       {particleData.map((_, i) => (
         <sprite key={i}>
           <spriteMaterial
@@ -807,8 +807,9 @@ function Road() {
 }
 
 // Plaza to fill space where the garden was removed
-function Plaza() {
+function Plaza({ onFirePitClick }: { onFirePitClick: () => void }) {
   const [deskHover, setDeskHover] = useState(false);
+  const [fireHover, setFireHover] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const tileLines = useMemo(() => {
     const lines: number[] = [];
@@ -876,11 +877,33 @@ function Plaza() {
       ))}
 
       {/* Central fire pit */}
-      <group position={[0, 0.15, 0]}>
+      <group
+        position={[0, 0.15, 0]}
+        onClick={(e) => {
+          e.stopPropagation();
+          onFirePitClick();
+        }}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          setFireHover(true);
+          document.body.style.cursor = 'pointer';
+        }}
+        onPointerOut={(e) => {
+          e.stopPropagation();
+          setFireHover(false);
+          document.body.style.cursor = 'auto';
+        }}
+      >
         {/* Stone base */}
         <mesh castShadow receiveShadow>
           <cylinderGeometry args={[0.6, 0.65, 0.3, 24]} />
-          <meshStandardMaterial color="#0f3c46" roughness={0.8} metalness={0.2} />
+          <meshStandardMaterial
+            color={fireHover ? '#13404f' : '#0f3c46'}
+            roughness={0.8}
+            metalness={0.2}
+            emissive={fireHover ? '#0a3445' : '#000000'}
+            emissiveIntensity={fireHover ? 0.18 : 0}
+          />
         </mesh>
 
         {/* Decorative stones around the pit */}
@@ -930,20 +953,20 @@ function Plaza() {
         </mesh>
 
         {/* Fire effect */}
-        <Fire position={[0, 0.2, 0]} />
+        <Fire position={[0, 0.2, 0]} scale={fireHover ? 1.25 : 1} />
 
         {/* Orange glow light */}
         <pointLight
           position={[0, 0.5, 0]}
           color="#ff6600"
-          intensity={1.5}
+          intensity={fireHover ? 1.8 : 1.5}
           distance={4}
           castShadow
         />
         <pointLight
           position={[0, 0.25, 0]}
           color="#ff3300"
-          intensity={1}
+          intensity={fireHover ? 1.15 : 1}
           distance={2.5}
         />
       </group>
@@ -1151,7 +1174,7 @@ function Buildings({ onBuildingClick }: { onBuildingClick: (id: string) => void 
   );
 }
 
-function Scene({ onBuildingClick }: { onBuildingClick: (id: string) => void }) {
+function Scene({ onBuildingClick, onFirePitClick }: { onBuildingClick: (id: string) => void; onFirePitClick: () => void }) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -1164,7 +1187,7 @@ function Scene({ onBuildingClick }: { onBuildingClick: (id: string) => void }) {
 
   const cameraPosition: [number, number, number] = isMobile
     ? [8.620148792505306, 3.7640507683034587, 8.690509571291406]
-    : [9.234217739692145, 1.8225191805880199, 8.683757629755902]; //[8, 6, 8];
+    : [8.781542159511115, 1.8225191805880196, 9.141276778279817]; //[8, 6, 8];
 
   return (
     <>
@@ -1198,7 +1221,7 @@ function Scene({ onBuildingClick }: { onBuildingClick: (id: string) => void }) {
       <Suspense fallback={null}>
         <Ground />
         <Road />
-        <Plaza />
+        <Plaza onFirePitClick={onFirePitClick} />
         <StreetLamps />
         <BackgroundBuildings />
         {/* Shop building on this side of the road */}
@@ -1225,12 +1248,6 @@ function Scene({ onBuildingClick }: { onBuildingClick: (id: string) => void }) {
         minPolarAngle={Math.PI / 4}
         maxAzimuthAngle={Math.PI / 3}
         minAzimuthAngle={-Math.PI / 3}
-        onChange={(e) => {
-          if (e?.target && 'object' in e.target) {
-            const controls = e.target as { object: { position: { toArray: () => number[] } } };
-            console.log('Camera position:', controls.object.position.toArray());
-          }
-        }}
       />
     </>
   );
@@ -1256,10 +1273,19 @@ export default function PinScene({ scrollProgress }: PinSceneProps) {
     }
   };
 
+  const handleFirePitClick = () => {
+    const projectsSection = document.getElementById('projects');
+    if (projectsSection) {
+      projectsSection.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      router.push('/#projects');
+    }
+  };
+
   return (
     <div ref={containerRef} className="w-full h-full">
       <Canvas shadows dpr={[1, 2]}>
-        <Scene onBuildingClick={handleBuildingClick} />
+        <Scene onBuildingClick={handleBuildingClick} onFirePitClick={handleFirePitClick} />
       </Canvas>
     </div>
   );
