@@ -217,7 +217,7 @@ export default function ProjectPage() {
                   <h3 className="text-lg font-semibold text-white mb-4">
                     Get the App
                   </h3>
-                  <div className="space-y-3">
+                  <div className="flex flex-col gap-4">
                     {project.links.appStore && (
                       <Link href={project.links.appStore} target="_blank" rel="noopener noreferrer">
                         <motion.button
