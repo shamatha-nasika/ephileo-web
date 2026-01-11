@@ -556,22 +556,29 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="relative z-10 py-12 px-6 bg-gradient-to-b from-[#05080a] via-[#081219] to-[#05080a]">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#f2b134] to-[#0fb0c8] flex items-center justify-center">
-              <span className="text-white font-bold text-sm">E</span>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#f2b134] to-[#0fb0c8] flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-bold text-sm">E</span>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <p className="text-zinc-400 text-sm">
+                  &copy; {new Date().getFullYear()} Ephileo. All rights reserved.
+                </p>
+                <p className="text-zinc-500 text-xs">
+                  Designed by <span className="text-zinc-400">Bharath Bandaru</span>
+                </p>
+              </div>
             </div>
-            <p className="text-zinc-400 text-sm">
-              &copy; {new Date().getFullYear()} Ephileo. All rights reserved.
-            </p>
-          </div>
-          <div className="flex items-center gap-6">
-            <a href="#" className="text-zinc-500 hover:text-[#0fb0c8] transition-colors text-sm">
-              Privacy Policy
-            </a>
-            <a href="#" className="text-zinc-500 hover:text-[#0fb0c8] transition-colors text-sm">
-              Terms of Service
-            </a>
+            <div className="flex items-center gap-6">
+              <a href="#" className="text-zinc-500 hover:text-[#0fb0c8] transition-colors text-sm">
+                Privacy Policy
+              </a>
+              <a href="#" className="text-zinc-500 hover:text-[#0fb0c8] transition-colors text-sm">
+                Terms of Service
+              </a>
+            </div>
           </div>
         </div>
       </footer>
