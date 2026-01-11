@@ -478,9 +478,9 @@ function StreetLamps() {
   const lamps = useMemo(() => {
     const lampArray = [];
     const xShift = isMobile ? -1 : 0;
-    // Create 10 lamps on each side of the road (20 total)
-    for (let i = 0; i < 10; i++) {
-      const x = -36 + (i * 8) + xShift;
+    // Create 6 lamps on each side of the road (12 total)
+    for (let i = 0; i < 6; i++) {
+      const x = -20 + (i * 8) + xShift;
       // Left side of road (negative Z)
       lampArray.push({ pos: [x, 0, -1.3] as [number, number, number] });
       // Right side of road (positive Z)
@@ -689,13 +689,13 @@ function Buildings({ onBuildingClick }: { onBuildingClick: (id: string) => void 
   const buildingConfigsMobile = [
     { position: [-4, 0, -2] as [number, number, number], height: 2.2 },
     { position: [-1.65, 0, -2] as [number, number, number], height: 2.8 },
-    { position: [0.5, 0, -2] as [number, number, number], height: 2 },
+    { position: [0.5, 0, -2] as [number, number, number], height: 2.4 },
   ];
 
   const buildingConfigsDesktop = [
     { position: [-2.5, 0, -2] as [number, number, number], height: 2.2 },
     { position: [0, 0, -2] as [number, number, number], height: 2.8 },
-    { position: [2.5, 0, -2] as [number, number, number], height: 2 },
+    { position: [2.5, 0, -2] as [number, number, number], height: 2.4 },
   ];
 
   const buildingConfigs = isMobile ? buildingConfigsMobile : buildingConfigsDesktop;
