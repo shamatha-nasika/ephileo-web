@@ -27,6 +27,7 @@ export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -40,6 +41,15 @@ export default function Home() {
     const unsubscribe = scrollYProgress.on('change', (value) => {
       setScrollProgress(Math.min(value * 5, 1)); // Scale for hero section only
     });
+
+    // Track scroll position for scroll-to-top button
+    const handleScroll = () => {
+      const scrolled = window.scrollY;
+      const windowHeight = window.innerHeight;
+      setShowScrollTop(scrolled > windowHeight);
+    };
+
+    window.addEventListener('scroll', handleScroll);
 
     // GSAP animations for sections with improved performance
     const sections = gsap.utils.toArray('.animate-section');
@@ -65,6 +75,7 @@ export default function Home() {
 
     return () => {
       unsubscribe();
+      window.removeEventListener('scroll', handleScroll);
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, [scrollYProgress]);
@@ -109,6 +120,10 @@ export default function Home() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -547,6 +562,38 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Scroll to Top Button */}
+      <div className="fixed bottom-4 sm:bottom-8 right-6 sm:right-8 z-50">
+        <motion.button
+          onClick={scrollToTop}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{
+            opacity: showScrollTop ? 1 : 0,
+            scale: showScrollTop ? 1 : 0.8,
+            pointerEvents: showScrollTop ? 'auto' : 'none'
+          }}
+          transition={{ duration: 0.3 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-md shadow-black/20 flex items-center justify-center text-white hover:bg-white/15 hover:border-white/30 transition-all"
+          aria-label="Scroll to top"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 19V5M5 12l7-7 7 7" />
+          </svg>
+        </motion.button>
+      </div>
     </div>
   );
 }
