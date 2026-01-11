@@ -149,7 +149,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="text-sm text-zinc-500 max-w-md mx-auto"
           >
-            Click on a building to explore our projects. <br />Drag to look around.
+              Drag to look around.<br />Click to explore.
           </motion.p>
         </div>
 

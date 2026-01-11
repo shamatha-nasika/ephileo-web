@@ -805,7 +805,6 @@ function Road() {
 
 // Plaza to fill space where the garden was removed
 function Plaza() {
-  const router = useRouter();
   const [deskHover, setDeskHover] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const tileLines = useMemo(() => {
@@ -813,6 +812,14 @@ function Plaza() {
     for (let i = -24; i <= 24; i += 2) lines.push(i);
     return lines;
   }, []);
+
+  const [stoneRotations] = useState(() =>
+    Array.from({ length: 12 }, () => [
+      Math.random() * 0.3,
+      Math.random() * Math.PI,
+      Math.random() * 0.3
+    ] as [number, number, number])
+  );
 
   useEffect(() => {
     const mql = window.matchMedia('(max-width: 640px)');
@@ -823,7 +830,10 @@ function Plaza() {
   }, []);
 
   const handleHelpClick = () => {
-    router.push('/about');
+    const aboutSection = document.getElementById('about');
+    if (aboutSection) {
+      aboutSection.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const deskPosition: [number, number, number] = isMobile ? [4.5, 0.12, -2.75] : [-1.88, 0.12, -2.75];
@@ -882,7 +892,7 @@ function Plaza() {
                 0.05,
                 Math.sin(angle) * radius
               ]}
-              rotation={[Math.random() * 0.3, Math.random() * Math.PI, Math.random() * 0.3]}
+              rotation={stoneRotations[i]}
               castShadow
             >
               <boxGeometry args={[0.12, 0.15, 0.1]} />
