@@ -131,7 +131,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-6xl md:text-8xl font-bold mb-4 text-white font-[family-name:var(--font-cookie)]"
+            className="text-6xl md:text-8xl font-bold mb-4 text-white font-[family-name:var(--font-cookie)] hidden sm:block"
           >
             ephileo
           </motion.h1>
@@ -139,7 +139,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl md:text-2xl text-zinc-300 mb-8"
+            className="text-xl md:text-2xl text-zinc-300 mb-3 hidden sm:block"
           >
             build products people love.
           </motion.p>
@@ -147,11 +147,23 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="text-sm text-zinc-500 max-w-md mx-auto"
+            className="text-sm text-zinc-500 max-w-md mx-auto hidden sm:block"
           >
               Drag to look around.<br />Click to explore.
           </motion.p>
         </div>
+
+        {/* Drag to look around text - mobile only */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 text-center pointer-events-none sm:hidden"
+        >
+          <p className="text-sm text-zinc-500">
+            Drag to look around.<br />Click to explore.
+          </p>
+        </motion.div>
 
         {/* Scroll indicator */}
         <motion.div

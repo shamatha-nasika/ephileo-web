@@ -14,7 +14,7 @@ export default function Header() {
       <nav className="max-w-7xl mx-auto flex items-center justify-between">
         <Link href="/">
           <motion.div
-            className="text-2xl font-bold text-white tracking-tight"
+            className="text-4xl sm:text-2xl font-bold text-white tracking-tight font-[family-name:var(--font-cookie)] sm:font-sans"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >

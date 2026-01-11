@@ -41,11 +41,14 @@ function BackgroundBuildings() {
       const z = Math.sin(angle) * radius;
       const height = 0.5 + Math.random() * 2;
 
-      list.push({
-        pos: [x, 0, z],
-        height,
-        color: colors[Math.floor(Math.random() * colors.length)]
-      });
+      // Only add buildings on the far side of the road (z < -2) and plaza (z > 9.5)
+      if (z < -2 || z > 9.5) {
+        list.push({
+          pos: [x, 0, z],
+          height,
+          color: colors[Math.floor(Math.random() * colors.length)]
+        });
+      }
     }
     return list;
   }, []);
@@ -836,7 +839,7 @@ function Plaza() {
     }
   };
 
-  const deskPosition: [number, number, number] = isMobile ? [4.5, 0.12, -2.75] : [-1.88, 0.12, -2.75];
+  const deskPosition: [number, number, number] = isMobile ? [4.15, 0.12, -2.55] : [5.88, 0.12, -2.75];
   const person1Offset: [number, number, number] = [0.3, -0.12, 0.35];
   const person2Offset: [number, number, number] = [-0.25, -0.12, -0.4];
   const person1Pos: [number, number, number] = [
@@ -1075,7 +1078,7 @@ function Plaza() {
       <Dog position={[1.45, 0, 0.25]} />
 
       {/* Telephone booth */}
-      <TelephoneBooth position={isMobile ? [1.5, 0, -2.5] : [1, 0, -2.5]} rotation={[0, 0, 0]} />
+      <TelephoneBooth position={isMobile ? [1.6, 0, -2.35] : [1, 0, -2.25]} rotation={[0, 0, 0]} />
 
       {/* Low bollards as edge definition instead of vegetation */}
       {Array.from({ length: 18 }, (_, i) => i - 9).map((i) => (
@@ -1149,6 +1152,20 @@ function Buildings({ onBuildingClick }: { onBuildingClick: (id: string) => void 
 }
 
 function Scene({ onBuildingClick }: { onBuildingClick: (id: string) => void }) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 640px)');
+    const update = (e: MediaQueryListEvent | MediaQueryList) => setIsMobile(e.matches);
+    update(mql);
+    mql.addEventListener('change', update);
+    return () => mql.removeEventListener('change', update);
+  }, []);
+
+  const cameraPosition: [number, number, number] = isMobile
+    ? [8.620148792505306, 3.7640507683034587, 8.690509571291406]
+    : [9.234217739692145, 1.8225191805880199, 8.683757629755902]; //[8, 6, 8];
+
   return (
     <>
       {/* Sky gradient */}
@@ -1156,7 +1173,7 @@ function Scene({ onBuildingClick }: { onBuildingClick: (id: string) => void }) {
       <fog attach="fog" args={['#05080a', 15, 35]} />
 
       {/* Isometric-style camera angle */}
-      <PerspectiveCamera makeDefault position={[8, 6, 8]} fov={40} />
+      <PerspectiveCamera makeDefault position={cameraPosition} fov={40} />
 
       {/* Lighting */}
       <ambientLight intensity={0.4} />
@@ -1184,6 +1201,18 @@ function Scene({ onBuildingClick }: { onBuildingClick: (id: string) => void }) {
         <Plaza />
         <StreetLamps />
         <BackgroundBuildings />
+        {/* Shop building on this side of the road */}
+        <group position={[7, 0.5, 7.5]}>
+          <mesh position={[0, 0.215, 0]} castShadow receiveShadow>
+            <boxGeometry args={[1, 0.7, 1]} />
+            <meshStandardMaterial color="#162029" roughness={0.8} metalness={0.2} />
+          </mesh>
+          {/* Roof decoration */}
+          <mesh position={[0, 0.55, 0]} castShadow>
+            <boxGeometry args={[1.1, 0.1, 1.1]} />
+            <meshStandardMaterial color="#3a2a12" metalness={0.15} roughness={0.85} />
+          </mesh>
+        </group>
         <Clouds />
         <Snow />
         <Buildings onBuildingClick={onBuildingClick} />
@@ -1196,6 +1225,12 @@ function Scene({ onBuildingClick }: { onBuildingClick: (id: string) => void }) {
         minPolarAngle={Math.PI / 4}
         maxAzimuthAngle={Math.PI / 3}
         minAzimuthAngle={-Math.PI / 3}
+        onChange={(e) => {
+          if (e?.target && 'object' in e.target) {
+            const controls = e.target as { object: { position: { toArray: () => number[] } } };
+            console.log('Camera position:', controls.object.position.toArray());
+          }
+        }}
       />
     </>
   );
