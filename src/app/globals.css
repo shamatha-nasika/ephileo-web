@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000008;
+  --background: #05080a;
   --foreground: #ededed;
 }
 
@@ -45,9 +45,9 @@ body {
 .space-bg {
   background: linear-gradient(
     180deg,
-    #000008 0%,
-    #0a0a1a 50%,
-    #000008 100%
+    #05080a 0%,
+    #0d161d 50%,
+    #05080a 100%
   );
 }
 
@@ -57,11 +57,11 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #000008;
+  background: #05080a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #000001;
+  background: #0c1218;
   border-radius: 4px;
 }
 
@@ -71,7 +71,7 @@ body {
 
 /* Selection color */
 ::selection {
-  background: rgba(77, 166, 255, 0.3);
+  background: rgba(15, 176, 200, 0.35);
   color: #fff;
 }
 

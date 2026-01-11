@@ -94,7 +94,7 @@ export default function Building({
       {/* Building base/foundation */}
       <mesh position={[0, 0.05, 0]} castShadow receiveShadow>
         <boxGeometry args={[1, 0.1, 1]} />
-        <meshStandardMaterial color="#000001" metalness={0.3} roughness={0.7} />
+        <meshStandardMaterial color="#05080a" metalness={0.15} roughness={0.85} flatShading />
       </mesh>
 
       {/* Main building body */}
@@ -102,10 +102,9 @@ export default function Building({
         <boxGeometry args={[0.8, height, 0.8]} />
         <meshStandardMaterial
           color={color}
-          metalness={0.2}
-          roughness={0.6}
-          emissive={color}
-          emissiveIntensity={isHovered ? 0.2 : 0}
+          metalness={0.1}
+          roughness={0.9}
+          flatShading
         />
       </mesh>
 
@@ -136,7 +135,7 @@ export default function Building({
       {/* Roof */}
       <mesh position={[0, height + 0.15, 0]} castShadow>
         <boxGeometry args={[0.9, 0.1, 0.9]} />
-        <meshStandardMaterial color="#2d2d44" metalness={0.4} roughness={0.5} />
+        <meshStandardMaterial color="#0f3c46" metalness={0.15} roughness={0.85} flatShading />
       </mesh>
 
       {/* Billboard/Sign with logo */}
@@ -151,9 +150,10 @@ export default function Building({
         <mesh castShadow>
           <boxGeometry args={[0.6, 0.5, 0.05]} />
           <meshStandardMaterial
-            color="#000001"
-            metalness={0.3}
-            roughness={0.5}
+            color="#05080a"
+            metalness={0.15}
+            roughness={0.7}
+            flatShading
           />
         </mesh>
 
@@ -165,7 +165,7 @@ export default function Building({
             color={textureError ? '#ffffff' : undefined}
             transparent
             emissive={color}
-            emissiveIntensity={isHovered ? 0.8 : 0.4}
+            emissiveIntensity={isHovered ? 0.4 : 0.15}
           />
         </mesh>
 

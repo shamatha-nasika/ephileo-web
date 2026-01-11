@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useRef, useMemo } from 'react';
+import { Suspense, useState, useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Float } from '@react-three/drei';
 import { useRouter } from 'next/navigation';
@@ -16,12 +16,12 @@ function Ground() {
       {/* Main ground */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[50, 50]} />
-        <meshStandardMaterial color="#000001" />
+        <meshStandardMaterial color="#05080a" />
       </mesh>
 
       {/* Grid lines */}
       <gridHelper
-        args={[50, 50, '#2d2d44', '#2d2d44']}
+        args={[50, 50, '#0f3c46', '#0f3c46']}
         position={[0, 0.01, 0]}
       />
     </group>
@@ -32,7 +32,7 @@ function Ground() {
 function BackgroundBuildings() {
   const buildings = useMemo(() => {
     const list: { pos: [number, number, number]; height: number; color: string }[] = [];
-    const colors = ['#3d3d5c', '#4a4a6a', '#2d2d44', '#5c5c7a'];
+    const colors = ['#0f3c46', '#162029', '#1f2f38', '#3a2a12'];
 
     for (let i = 0; i < 30; i++) {
       const angle = Math.random() * Math.PI * 2;
@@ -465,18 +465,29 @@ function Dog({ position }: { position: [number, number, number] }) {
 
 // Street lamps
 function StreetLamps() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 640px)');
+    const update = (e: MediaQueryListEvent | MediaQueryList) => setIsMobile(e.matches);
+    update(mql);
+    mql.addEventListener('change', update);
+    return () => mql.removeEventListener('change', update);
+  }, []);
+
   const lamps = useMemo(() => {
     const lampArray = [];
+    const xShift = isMobile ? -1 : 0;
     // Create 10 lamps on each side of the road (20 total)
     for (let i = 0; i < 10; i++) {
-      const x = -36 + (i * 8);
+      const x = -36 + (i * 8) + xShift;
       // Left side of road (negative Z)
       lampArray.push({ pos: [x, 0, -1.3] as [number, number, number] });
       // Right side of road (positive Z)
       lampArray.push({ pos: [x, 0, 1.3] as [number, number, number] });
     }
     return lampArray;
-  }, []);
+  }, [isMobile]);
 
   return (
     <group>
@@ -524,7 +535,7 @@ function Road() {
       {Array.from({ length: 20 }, (_, i) => i * 4 - 38).map((x, i) => (
         <mesh key={`divider-${i}`} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.03, 0]}>
           <planeGeometry args={[2, 0.15]} />
-          <meshStandardMaterial color="#aa8800" emissive="#aa8800" emissiveIntensity={0.2} />
+          <meshStandardMaterial color="#f2b134" emissive="#f2b134" emissiveIntensity={0.2} />
         </mesh>
       ))}
     </group>
@@ -544,20 +555,20 @@ function Plaza() {
       {/* Concrete pad */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>        
         <planeGeometry args={[50, 7.5]} />
-        <meshStandardMaterial color="#3a3a45" roughness={0.9} metalness={0.05} />
+        <meshStandardMaterial color="#1a1f26" roughness={0.9} metalness={0.05} />
       </mesh>
 
       {/* Subtle tile grid */}
       {tileLines.map((x, i) => (
         <mesh key={`tile-x-${i}`} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.001, 0]}>
           <planeGeometry args={[0.03, 7.5]} />
-          <meshStandardMaterial color="#2f2f38" />
+          <meshStandardMaterial color="#0f3c46" />
         </mesh>
       ))}
       {tileLines.map((z, i) => (
         <mesh key={`tile-z-${i}`} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.001, z / 3]}>
           <planeGeometry args={[50, 0.03]} />
-          <meshStandardMaterial color="#2f2f38" />
+          <meshStandardMaterial color="#0f3c46" />
         </mesh>
       ))}
 
@@ -566,7 +577,7 @@ function Plaza() {
         {/* Stone base */}
         <mesh castShadow receiveShadow>
           <cylinderGeometry args={[0.6, 0.65, 0.3, 24]} />
-          <meshStandardMaterial color="#4c4c58" roughness={0.8} metalness={0.1} />
+          <meshStandardMaterial color="#0f3c46" roughness={0.8} metalness={0.2} />
         </mesh>
 
         {/* Decorative stones around the pit */}
@@ -585,7 +596,7 @@ function Plaza() {
               castShadow
             >
               <boxGeometry args={[0.12, 0.15, 0.1]} />
-              <meshStandardMaterial color="#5a5a68" roughness={0.9} metalness={0.05} />
+              <meshStandardMaterial color="#1f2a32" roughness={0.9} metalness={0.08} />
             </mesh>
           );
         })}
@@ -608,10 +619,10 @@ function Plaza() {
         <mesh position={[0, 0.17, 0]}>
           <sphereGeometry args={[0.15, 16, 16]} />
           <meshStandardMaterial
-            color="#ff4400"
-            emissive="#ff3300"
-            emissiveIntensity={0.8}
-            roughness={0.7}
+            color="#f2b134"
+            emissive="#c07d12"
+            emissiveIntensity={0.7}
+            roughness={0.65}
           />
         </mesh>
 
@@ -639,7 +650,7 @@ function Plaza() {
       <Person position={[-1.2, 0, 0]} color="#5a3a3a" />
       <Person position={[0, 0, 1.2]} color="#4a5a4a" />
       <Person position={[0, 0, -1.2]} color="#6a4a6a" />
-      <Person position={[0.85, 0, 0.85]} color="#4a4a6a" />
+      <Person position={[0.85, 0, 0.85]} color="#0f3c46" />
       <Person position={[-0.85, 0, -0.85]} color="#5a4a4a" />
 
       {/* Dog companion next to one person */}
@@ -665,14 +676,32 @@ function Plaza() {
 function Buildings({ onBuildingClick }: { onBuildingClick: (id: string) => void }) {
   const [hoveredBuilding, setHoveredBuilding] = useState<string | null>(null);
 
-  const buildingConfigs = [
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 640px)');
+    const update = (e: MediaQueryListEvent | MediaQueryList) => setIsMobile(e.matches);
+    update(mql);
+    mql.addEventListener('change', update);
+    return () => mql.removeEventListener('change', update);
+  }, []);
+
+  const buildingConfigsMobile = [
+    { position: [-4, 0, -2] as [number, number, number], height: 2.2 },
+    { position: [-1.65, 0, -2] as [number, number, number], height: 2.8 },
+    { position: [0.5, 0, -2] as [number, number, number], height: 2 },
+  ];
+
+  const buildingConfigsDesktop = [
     { position: [-2.5, 0, -2] as [number, number, number], height: 2.2 },
     { position: [0, 0, -2] as [number, number, number], height: 2.8 },
     { position: [2.5, 0, -2] as [number, number, number], height: 2 },
   ];
 
+  const buildingConfigs = isMobile ? buildingConfigsMobile : buildingConfigsDesktop;
+
   // Map project indices to building positions
-  const positionMap = [0, 1, 2]; // Roamates->left, Chain->middle, Escape->right
+  const positionMap = [2, 1, 0]; // Roamates->right, Chain->middle, Escape->left
 
   return (
     <>
@@ -702,8 +731,8 @@ function Scene({ onBuildingClick }: { onBuildingClick: (id: string) => void }) {
   return (
     <>
       {/* Sky gradient */}
-      <color attach="background" args={['#0f0f1a']} />
-      <fog attach="fog" args={['#0f0f1a', 15, 35]} />
+      <color attach="background" args={['#05080a']} />
+      <fog attach="fog" args={['#05080a', 15, 35]} />
 
       {/* Isometric-style camera angle */}
       <PerspectiveCamera makeDefault position={[8, 6, 8]} fov={40} />
