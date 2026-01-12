@@ -22,6 +22,41 @@ function Tooltip({ children, visible }: { children: React.ReactNode; visible: bo
   );
 }
 
+// Navigation tooltip with countdown and cancel
+function NavigationTooltip({
+  visible,
+  destination,
+  countdown,
+  onCancel,
+}: {
+  visible: boolean;
+  destination: string;
+  countdown: number;
+  onCancel: () => void;
+}) {
+  if (!visible) return null;
+
+  return (
+    <Html center>
+      <div className="flex flex-col items-center gap-3 px-5 py-4 bg-black/95 text-white text-sm rounded-xl whitespace-nowrap backdrop-blur-md border border-white/20 shadow-lg">
+        <span className="text-zinc-300">Navigating to {destination}...</span>
+        <div className="w-12 h-12 rounded-full border-2 border-[#0fb0c8] flex items-center justify-center">
+          <span className="text-2xl font-bold text-[#0fb0c8]">{countdown}</span>
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onCancel();
+          }}
+          className="px-4 py-1.5 text-xs bg-white/10 hover:bg-white/20 rounded-full transition-colors cursor-pointer"
+        >
+          Cancel
+        </button>
+      </div>
+    </Html>
+  );
+}
+
 // Ground plane with grid pattern
 function Ground() {
   return (
@@ -490,15 +525,46 @@ function TelephoneBooth({
   onInteraction?: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
+  const [navActive, setNavActive] = useState(false);
+  const [countdown, setCountdown] = useState(3);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
   const frameColor = hovered ? '#d10000' : '#b00000';
   const glow = hovered ? 0.45 : 0.18;
 
-  const handleClick = () => {
-    onInteraction?.();
-    const contactSection = document.getElementById('contact');
-    if (contactSection) {
-      contactSection.scrollIntoView({ behavior: 'smooth' });
+  // Navigation countdown
+  useEffect(() => {
+    if (navActive && countdown > 0) {
+      timerRef.current = setTimeout(() => {
+        setCountdown(c => c - 1);
+      }, 1000);
+    } else if (navActive && countdown === 0) {
+      timerRef.current = setTimeout(() => {
+        const contactSection = document.getElementById('contact');
+        if (contactSection) {
+          contactSection.scrollIntoView({ behavior: 'smooth' });
+        }
+        setNavActive(false);
+        setCountdown(3);
+      }, 0);
     }
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [navActive, countdown]);
+
+  const handleClick = () => {
+    if (!navActive) {
+      onInteraction?.();
+      setNavActive(true);
+      setCountdown(3);
+    }
+  };
+
+  const cancelNav = () => {
+    setNavActive(false);
+    setCountdown(3);
+    if (timerRef.current) clearTimeout(timerRef.current);
   };
 
   const glassMat = useMemo(
@@ -545,7 +611,13 @@ function TelephoneBooth({
     <group position={position} rotation={rotation}>
       {/* Tooltip */}
       <group position={[0, 1.85, 0]}>
-        <Tooltip visible={hovered}>Contact</Tooltip>
+        <Tooltip visible={hovered && !navActive}>Contact</Tooltip>
+        <NavigationTooltip
+          visible={navActive}
+          destination="Contact"
+          countdown={countdown}
+          onCancel={cancelNav}
+        />
       </group>
 
       {/* Plinth */}
@@ -832,6 +904,15 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
   const [deskHover, setDeskHover] = useState(false);
   const [fireHover, setFireHover] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Navigation countdown states
+  const [fireNavActive, setFireNavActive] = useState(false);
+  const [fireCountdown, setFireCountdown] = useState(3);
+  const [deskNavActive, setDeskNavActive] = useState(false);
+  const [deskCountdown, setDeskCountdown] = useState(3);
+  const fireTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const deskTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const tileLines = useMemo(() => {
     const lines: number[] = [];
     for (let i = -24; i <= 24; i += 2) lines.push(i);
@@ -854,12 +935,67 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
     return () => mql.removeEventListener('change', update);
   }, []);
 
+  // Fire pit navigation countdown
+  useEffect(() => {
+    if (fireNavActive && fireCountdown > 0) {
+      fireTimerRef.current = setTimeout(() => {
+        setFireCountdown(c => c - 1);
+      }, 1000);
+    } else if (fireNavActive && fireCountdown === 0) {
+      fireTimerRef.current = setTimeout(() => {
+        onFirePitClick();
+        setFireNavActive(false);
+        setFireCountdown(3);
+      }, 0);
+    }
+    return () => {
+      if (fireTimerRef.current) clearTimeout(fireTimerRef.current);
+    };
+  }, [fireNavActive, fireCountdown, onFirePitClick]);
+
+  // Desk navigation countdown
+  useEffect(() => {
+    if (deskNavActive && deskCountdown > 0) {
+      deskTimerRef.current = setTimeout(() => {
+        setDeskCountdown(c => c - 1);
+      }, 1000);
+    } else if (deskNavActive && deskCountdown === 0) {
+      deskTimerRef.current = setTimeout(() => {
+        const aboutSection = document.getElementById('about');
+        if (aboutSection) {
+          aboutSection.scrollIntoView({ behavior: 'smooth' });
+        }
+        setDeskNavActive(false);
+        setDeskCountdown(3);
+      }, 0);
+    }
+    return () => {
+      if (deskTimerRef.current) clearTimeout(deskTimerRef.current);
+    };
+  }, [deskNavActive, deskCountdown]);
+
+  const handleFirePitClick = () => {
+    onInteraction?.();
+    setFireNavActive(true);
+    setFireCountdown(3);
+  };
+
+  const cancelFireNav = () => {
+    setFireNavActive(false);
+    setFireCountdown(3);
+    if (fireTimerRef.current) clearTimeout(fireTimerRef.current);
+  };
+
   const handleHelpClick = () => {
     onInteraction?.();
-    const aboutSection = document.getElementById('about');
-    if (aboutSection) {
-      aboutSection.scrollIntoView({ behavior: 'smooth' });
-    }
+    setDeskNavActive(true);
+    setDeskCountdown(3);
+  };
+
+  const cancelDeskNav = () => {
+    setDeskNavActive(false);
+    setDeskCountdown(3);
+    if (deskTimerRef.current) clearTimeout(deskTimerRef.current);
   };
 
   const deskPosition: [number, number, number] = isMobile ? [4.15, 0.12, -2.55] : [5.88, 0.12, -2.75];
@@ -903,7 +1039,9 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
         position={[0, 0.15, 0]}
         onClick={(e) => {
           e.stopPropagation();
-          onFirePitClick();
+          if (!fireNavActive) {
+            handleFirePitClick();
+          }
         }}
         onPointerOver={(e) => {
           e.stopPropagation();
@@ -918,7 +1056,13 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
       >
         {/* Tooltip */}
         <group position={[0, 1.2, 0]}>
-          <Tooltip visible={fireHover}>Projects</Tooltip>
+          <Tooltip visible={fireHover && !fireNavActive}>Projects</Tooltip>
+          <NavigationTooltip
+            visible={fireNavActive}
+            destination="Projects"
+            countdown={fireCountdown}
+            onCancel={cancelFireNav}
+          />
         </group>
 
         {/* Stone base */}
@@ -1010,7 +1154,13 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
       <group position={deskPosition}>
         {/* Tooltip */}
         <group position={[0, 0.85, 0]}>
-          <Tooltip visible={deskHover}>About</Tooltip>
+          <Tooltip visible={deskHover && !deskNavActive}>About</Tooltip>
+          <NavigationTooltip
+            visible={deskNavActive}
+            destination="About"
+            countdown={deskCountdown}
+            onCancel={cancelDeskNav}
+          />
         </group>
 
         {/* Table */}
@@ -1018,7 +1168,12 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
           position={[0, 0.18, 0]}
           castShadow
           receiveShadow
-          onClick={handleHelpClick}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!deskNavActive) {
+              handleHelpClick();
+            }
+          }}
           onPointerOver={(e) => {
             e.stopPropagation();
             setDeskHover(true);
