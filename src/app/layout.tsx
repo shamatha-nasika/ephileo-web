@@ -15,12 +15,12 @@ const cookie = Cookie({
 });
 
 export const metadata: Metadata = {
-  title: "Ephileo - Build Products People Love",
+  title: "Ephileo - We build Products People Love",
   description: "Ephileo develops beautifully designed applications that people love. Games, apps, and digital experiences crafted with care.",
   keywords: ["ephileo", "apps", "games", "mobile apps", "chain reaction", "escape game", "roamates"],
   authors: [{ name: "Ephileo" }],
   openGraph: {
-    title: "Ephileo - Build Products People Love",
+    title: "Ephileo - We build Products People Love",
     description: "Beautifully designed applications that people love.",
     type: "website",
   },

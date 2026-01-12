@@ -29,6 +29,8 @@ export default function Home() {
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+  const [splashAnimating, setSplashAnimating] = useState(false);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -36,6 +38,27 @@ export default function Home() {
   });
 
   const sceneOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+
+  // Mobile splash screen timer
+  useEffect(() => {
+    // Only run on mobile
+    const isMobile = window.innerWidth < 640;
+    if (!isMobile) {
+      setShowSplash(false);
+      return;
+    }
+
+    // After 3 seconds, start the animation
+    const timer = setTimeout(() => {
+      setSplashAnimating(true);
+      // After animation completes (0.6s), hide splash
+      setTimeout(() => {
+        setShowSplash(false);
+      }, 600);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     // Track scroll progress for parallax
@@ -141,6 +164,40 @@ export default function Home() {
 
   return (
     <div ref={containerRef} className="bg-[#05080a] min-h-screen">
+      {/* Mobile Splash Screen */}
+      {showSplash && (
+        <motion.div
+          className="fixed inset-0 z-[100] bg-[#05080a] flex flex-col items-center justify-center sm:hidden"
+          animate={{
+            opacity: splashAnimating ? 0 : 1,
+          }}
+          transition={{ duration: 0.6, ease: 'easeInOut' }}
+        >
+          <motion.h1
+            className="text-5xl font-bold text-white font-[family-name:var(--font-cookie)]"
+            animate={{
+              y: splashAnimating ? -200 : 0,
+              scale: splashAnimating ? 0.7 : 1,
+              opacity: splashAnimating ? 0 : 1,
+            }}
+            transition={{ duration: 0.6, ease: 'easeInOut' }}
+          >
+            ephileo
+          </motion.h1>
+          <motion.p
+            className="text-lg text-zinc-400 mt-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{
+              opacity: splashAnimating ? 0 : 1,
+              y: splashAnimating ? -20 : 0,
+            }}
+            transition={{ duration: 0.4, delay: splashAnimating ? 0 : 0.3 }}
+          >
+            we build products people love.
+          </motion.p>
+        </motion.div>
+      )}
+
       <Header />
 
       {/* Hero Section with 3D Pins */}
@@ -169,7 +226,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-xl md:text-2xl text-zinc-300 mb-3 hidden sm:block"
           >
-            build products people love.
+            we build products people love.
           </motion.p>
           <motion.p
             initial={{ opacity: 0, y: 30 }}
