@@ -604,13 +604,13 @@ export default function Home() {
           transition={{ duration: 0.3 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-md shadow-black/20 flex items-center justify-center text-white hover:bg-white/15 hover:border-white/30 transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md text-white text-sm font-medium hover:bg-white/20 transition-colors cursor-pointer"
           aria-label="Scroll to top"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
+            width="16"
+            height="16"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -618,8 +618,9 @@ export default function Home() {
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <path d="M12 19V5M5 12l7-7 7 7" />
+            <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
+          Back
         </motion.button>
       </div>
     </div>
