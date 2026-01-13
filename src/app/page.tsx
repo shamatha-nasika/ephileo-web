@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import dynamic from 'next/dynamic';
 import Header from '@/components/ui/Header';
 import ProjectCard from '@/components/ui/ProjectCard';
@@ -19,7 +20,7 @@ const PinScene = dynamic(() => import('@/components/3d/PinScene'), {
   ),
 });
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -39,23 +40,18 @@ export default function Home() {
 
   const sceneOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
 
-  // Mobile splash screen timer
+  // Splash screen timer (different durations for mobile and desktop)
   useEffect(() => {
-    // Only run on mobile
     const isMobile = window.innerWidth < 640;
-    if (!isMobile) {
-      setShowSplash(false);
-      return;
-    }
+    const splashDuration = isMobile ? 1000 : 750; // 1s on mobile, 500ms on desktop
 
-    // After 3 seconds, start the animation
     const timer = setTimeout(() => {
       setSplashAnimating(true);
       // After animation completes (0.6s), hide splash
       setTimeout(() => {
         setShowSplash(false);
       }, 600);
-    }, 3000);
+    }, splashDuration);
 
     return () => clearTimeout(timer);
   }, []);
@@ -150,12 +146,16 @@ export default function Home() {
   };
 
   const scrollToTop = () => {
-    // Hide button immediately
+    // Hide button with animation first
     setShowScrollTop(false);
     setHasInteracted(false);
 
-    // Then scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Use GSAP for smooth scroll animation
+    gsap.to(window, {
+      scrollTo: { y: 0 },
+      duration: 1,
+      ease: 'power2.inOut',
+    });
   };
 
   const handleSceneInteraction = () => {
@@ -164,38 +164,46 @@ export default function Home() {
 
   return (
     <div ref={containerRef} className="bg-[#05080a] min-h-screen">
-      {/* Mobile Splash Screen */}
+      {/* Splash Overlay - solid background that fades to reveal content */}
       {showSplash && (
-        <motion.div
-          className="fixed inset-0 z-[100] bg-[#05080a] flex flex-col items-center justify-center sm:hidden"
-          animate={{
-            opacity: splashAnimating ? 0 : 1,
-          }}
-          transition={{ duration: 0.6, ease: 'easeInOut' }}
-        >
-          <motion.h1
-            className="text-5xl font-bold text-white font-[family-name:var(--font-cookie)]"
+        <>
+          {/* Mobile splash with centered text */}
+          <motion.div
+            className="fixed inset-0 z-[100] bg-[#05080a] flex flex-col items-center justify-center sm:hidden"
             animate={{
-              y: splashAnimating ? -200 : 0,
-              scale: splashAnimating ? 0.7 : 1,
               opacity: splashAnimating ? 0 : 1,
             }}
             transition={{ duration: 0.6, ease: 'easeInOut' }}
           >
-            ephileo
-          </motion.h1>
-          <motion.p
-            className="text-lg text-zinc-400 mt-4"
-            initial={{ opacity: 0, y: 10 }}
+            <motion.h1
+              className="text-5xl font-bold text-white font-[family-name:var(--font-cookie)]"
+              animate={{
+                y: splashAnimating ? -200 : 0,
+                scale: splashAnimating ? 0.7 : 1,
+                opacity: splashAnimating ? 0 : 1,
+              }}
+              transition={{ duration: 0.6, ease: 'easeInOut' }}
+            >
+              ephileo
+            </motion.h1>
+            <motion.p
+              className="text-lg text-zinc-300 mt-1"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: splashAnimating ? 0 : 1 }}
+              transition={{ duration: 0.6, delay: splashAnimating ? 0 : 0.4, ease: 'easeInOut' }}
+            >
+              we build products people love.
+            </motion.p>
+          </motion.div>
+          {/* Desktop splash - just a solid overlay that fades away */}
+          <motion.div
+            className="fixed inset-0 z-[100] bg-[#05080a] hidden sm:block"
             animate={{
               opacity: splashAnimating ? 0 : 1,
-              y: splashAnimating ? -20 : 0,
             }}
-            transition={{ duration: 0.4, delay: splashAnimating ? 0 : 0.3 }}
-          >
-            we build products people love.
-          </motion.p>
-        </motion.div>
+            transition={{ duration: 0.6, ease: 'easeInOut' }}
+          />
+        </>
       )}
 
       <Header />
@@ -210,7 +218,7 @@ export default function Home() {
           <PinScene scrollProgress={scrollProgress} onInteraction={handleSceneInteraction} />
         </motion.div>
 
-        {/* Hero Content */}
+        {/* Hero Content - desktop shows immediately (revealed by fading overlay), mobile waits for splash */}
         <div className="relative z-10 text-center px-6 pointer-events-none absolute top-[15%]">
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
@@ -238,24 +246,26 @@ export default function Home() {
           </motion.p>
         </div>
 
-        {/* Drag to look around text - mobile only */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 text-center pointer-events-none sm:hidden"
-        >
-          <p className="text-sm text-zinc-500">
-            Drag to look around.<br />Click to explore.
-          </p>
-        </motion.div>
+        {/* Drag to look around text - mobile only, after splash */}
+        {!showSplash && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 text-center pointer-events-none sm:hidden"
+          >
+            <p className="text-sm text-zinc-500">
+              Drag to look around.<br />Click to explore.
+            </p>
+          </motion.div>
+        )}
 
-        {/* Scroll indicator */}
+        {/* Scroll indicator - desktop shows immediately, mobile waits for splash */}
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          animate={{ opacity: showSplash ? 0 : 1 }}
+          transition={{ duration: 0.8, delay: showSplash ? 0 : 1 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:block"
         >
           <motion.div
             animate={{ y: [0, 10, 0] }}
@@ -269,6 +279,27 @@ export default function Home() {
             />
           </motion.div>
         </motion.div>
+        {/* Scroll indicator - mobile only, after splash */}
+        {!showSplash && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 1 }}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 sm:hidden"
+          >
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="w-6 h-10 border-2 border-zinc-600 rounded-full flex justify-center"
+            >
+              <motion.div
+                animate={{ y: [0, 16, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="w-1.5 h-1.5 bg-white rounded-full mt-2"
+              />
+            </motion.div>
+          </motion.div>
+        )}
       </motion.section>
 
       {/* Projects Section */}
@@ -658,7 +689,7 @@ export default function Home() {
             scale: showScrollTop ? 1 : 0.8,
             pointerEvents: showScrollTop ? 'auto' : 'none'
           }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.4, ease: 'easeInOut' }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md text-white text-sm font-medium hover:bg-white/20 transition-colors cursor-pointer"
