@@ -41,9 +41,29 @@ export default function Home() {
   const sceneOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
 
   // Splash screen timer (different durations for mobile and desktop)
+  // Show splash and restore scroll position in background if returning from a project
   useEffect(() => {
+    const savedScrollPosition = sessionStorage.getItem('scrollPosition');
     const isMobile = window.innerWidth < 640;
-    const splashDuration = isMobile ? 1000 : 750; // 1s on mobile, 500ms on desktop
+
+    if (savedScrollPosition) {
+      // Returning from project - restore scroll position immediately (behind splash)
+      sessionStorage.removeItem('scrollPosition');
+      window.scrollTo(0, parseInt(savedScrollPosition, 10));
+
+      // Show splash briefly then fade away
+      const splashDuration = isMobile ? 500 : 300; // Shorter duration when returning
+      const timer = setTimeout(() => {
+        setSplashAnimating(true);
+        setTimeout(() => {
+          setShowSplash(false);
+        }, 600);
+      }, splashDuration);
+
+      return () => clearTimeout(timer);
+    }
+
+    const splashDuration = isMobile ? 1000 : 750; // 1s on mobile, 750ms on desktop
 
     const timer = setTimeout(() => {
       setSplashAnimating(true);

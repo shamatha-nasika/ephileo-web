@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useRef, useMemo, useEffect } from 'react';
+import React, { Suspense, useState, useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Float, Text, Html } from '@react-three/drei';
 import { useRouter } from 'next/navigation';
@@ -38,7 +38,7 @@ function NavigationTooltip({
 
   return (
     <Html center>
-      <div className="flex flex-col items-center gap-3 px-5 py-4 bg-black/95 text-white text-sm rounded-xl whitespace-nowrap backdrop-blur-md border border-white/20 shadow-lg">
+      <div className="flex flex-col items-center gap-3 px-5 py-4 mb-20 bg-black/95 text-white text-sm rounded-xl whitespace-nowrap backdrop-blur-md border border-white/20 shadow-lg">
         <span className="text-zinc-300">Navigating to {destination}...</span>
         <div className="w-12 h-12 rounded-full border-2 border-[#0fb0c8] flex items-center justify-center">
           <span className="text-2xl font-bold text-[#0fb0c8]">{countdown}</span>
@@ -528,6 +528,8 @@ function TelephoneBooth({
   const [navActive, setNavActive] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const groupRef = useRef<THREE.Group>(null);
+  const { setTarget } = useCameraTarget();
 
   const frameColor = hovered ? '#d10000' : '#b00000';
   const glow = hovered ? 0.45 : 0.18;
@@ -544,6 +546,7 @@ function TelephoneBooth({
         if (contactSection) {
           contactSection.scrollIntoView({ behavior: 'smooth' });
         }
+        setTarget(null, 0.8); // Reset camera view after scroll starts
         setNavActive(false);
         setCountdown(3);
       }, 0);
@@ -551,19 +554,26 @@ function TelephoneBooth({
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [navActive, countdown]);
+  }, [navActive, countdown, setTarget]);
 
   const handleClick = () => {
     if (!navActive) {
       onInteraction?.();
       setNavActive(true);
       setCountdown(3);
+      // Set camera to look at this element
+      if (groupRef.current) {
+        const worldPos = new THREE.Vector3();
+        groupRef.current.getWorldPosition(worldPos);
+        setTarget([worldPos.x, worldPos.y + 0.5, worldPos.z]);
+      }
     }
   };
 
   const cancelNav = () => {
     setNavActive(false);
     setCountdown(3);
+    setTarget(null); // Reset camera view
     if (timerRef.current) clearTimeout(timerRef.current);
   };
 
@@ -608,7 +618,7 @@ function TelephoneBooth({
   );
 
   return (
-    <group position={position} rotation={rotation}>
+    <group ref={groupRef} position={position} rotation={rotation}>
       {/* Tooltip */}
       <group position={[0, 1.85, 0]}>
         <Tooltip visible={hovered && !navActive}>Contact</Tooltip>
@@ -912,6 +922,9 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
   const [deskCountdown, setDeskCountdown] = useState(3);
   const fireTimerRef = useRef<NodeJS.Timeout | null>(null);
   const deskTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const firePitRef = useRef<THREE.Group>(null);
+  const deskRef = useRef<THREE.Group>(null);
+  const { setTarget } = useCameraTarget();
 
   const tileLines = useMemo(() => {
     const lines: number[] = [];
@@ -944,6 +957,7 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
     } else if (fireNavActive && fireCountdown === 0) {
       fireTimerRef.current = setTimeout(() => {
         onFirePitClick();
+        setTarget(null, 0.8); // Reset camera view after scroll starts
         setFireNavActive(false);
         setFireCountdown(3);
       }, 0);
@@ -951,7 +965,7 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
     return () => {
       if (fireTimerRef.current) clearTimeout(fireTimerRef.current);
     };
-  }, [fireNavActive, fireCountdown, onFirePitClick]);
+  }, [fireNavActive, fireCountdown, onFirePitClick, setTarget]);
 
   // Desk navigation countdown
   useEffect(() => {
@@ -965,6 +979,7 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
         if (aboutSection) {
           aboutSection.scrollIntoView({ behavior: 'smooth' });
         }
+        setTarget(null, 0.8); // Reset camera view after scroll starts
         setDeskNavActive(false);
         setDeskCountdown(3);
       }, 0);
@@ -972,17 +987,24 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
     return () => {
       if (deskTimerRef.current) clearTimeout(deskTimerRef.current);
     };
-  }, [deskNavActive, deskCountdown]);
+  }, [deskNavActive, deskCountdown, setTarget]);
 
   const handleFirePitClick = () => {
     onInteraction?.();
     setFireNavActive(true);
     setFireCountdown(3);
+    // Set camera to look at fire pit
+    if (firePitRef.current) {
+      const worldPos = new THREE.Vector3();
+      firePitRef.current.getWorldPosition(worldPos);
+      setTarget([worldPos.x, worldPos.y + 0.5, worldPos.z]);
+    }
   };
 
   const cancelFireNav = () => {
     setFireNavActive(false);
     setFireCountdown(3);
+    setTarget(null); // Reset camera view
     if (fireTimerRef.current) clearTimeout(fireTimerRef.current);
   };
 
@@ -990,11 +1012,18 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
     onInteraction?.();
     setDeskNavActive(true);
     setDeskCountdown(3);
+    // Set camera to look at desk
+    if (deskRef.current) {
+      const worldPos = new THREE.Vector3();
+      deskRef.current.getWorldPosition(worldPos);
+      setTarget([worldPos.x, worldPos.y + 0.5, worldPos.z]);
+    }
   };
 
   const cancelDeskNav = () => {
     setDeskNavActive(false);
     setDeskCountdown(3);
+    setTarget(null); // Reset camera view
     if (deskTimerRef.current) clearTimeout(deskTimerRef.current);
   };
 
@@ -1036,6 +1065,7 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
 
       {/* Central fire pit */}
       <group
+        ref={firePitRef}
         position={[0, 0.15, 0]}
         onClick={(e) => {
           e.stopPropagation();
@@ -1151,7 +1181,7 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
       <Person position={[-0.85, 0, -0.85]} color="#5a4a4a" />
 
       {/* Help desk beside fire pit */}
-      <group position={deskPosition}>
+      <group ref={deskRef} position={deskPosition}>
         {/* Tooltip */}
         <group position={[0, 0.85, 0]}>
           <Tooltip visible={deskHover && !deskNavActive}>About</Tooltip>
@@ -1362,20 +1392,124 @@ function Buildings({ onBuildingClick }: { onBuildingClick: (id: string) => void 
   );
 }
 
+// Context for camera target changes
+const CameraTargetContext = React.createContext<{
+  setTarget: (position: [number, number, number] | null, delay?: number) => void;
+}>({ setTarget: () => {} });
+
+// Initial target position (0, 0, 0) - the default OrbitControls target
+const INITIAL_TARGET: [number, number, number] = [0, 0, 0];
+
+function CameraController({ children, initialCameraPosition, isMobile }: { children: React.ReactNode; initialCameraPosition: [number, number, number]; isMobile: boolean }) {
+  const controlsRef = useRef<React.ComponentRef<typeof OrbitControls>>(null);
+  const isAnimating = useRef(false);
+
+  const setTarget = (position: [number, number, number] | null, delay: number = 0) => {
+    // Only apply camera changes on mobile
+    if (!isMobile || !controlsRef.current) return;
+
+    if (position === null) {
+      // Reset camera to initial position and target
+      if (isAnimating.current) {
+        const controls = controlsRef.current;
+        const camera = controls.object;
+
+        // Animate camera position and target back to initial (with optional delay)
+        gsap.to(camera.position, {
+          x: initialCameraPosition[0],
+          y: initialCameraPosition[1],
+          z: initialCameraPosition[2],
+          duration: 0.5,
+          delay,
+          ease: 'power2.out',
+          onUpdate: () => controlsRef.current?.update(),
+        });
+
+        gsap.to(controls.target, {
+          x: INITIAL_TARGET[0],
+          y: INITIAL_TARGET[1],
+          z: INITIAL_TARGET[2],
+          duration: 0.5,
+          delay,
+          ease: 'power2.out',
+          onUpdate: () => controlsRef.current?.update(),
+          onComplete: () => {
+            isAnimating.current = false;
+          },
+        });
+      }
+    } else {
+      isAnimating.current = true;
+
+      // Animate to new target
+      gsap.to(controlsRef.current.target, {
+        x: position[0],
+        y: position[1],
+        z: position[2],
+        duration: 0.5,
+        ease: 'power2.out',
+        onUpdate: () => controlsRef.current?.update(),
+      });
+    }
+  };
+
+  // Log camera position on change
+  const handleControlsChange = () => {
+    if (controlsRef.current) {
+      const camera = controlsRef.current.object;
+      console.log('Camera position:', [camera.position.x, camera.position.y, camera.position.z]);
+      console.log('Camera target:', [controlsRef.current.target.x, controlsRef.current.target.y, controlsRef.current.target.z]);
+    }
+  };
+
+  return (
+    <CameraTargetContext.Provider value={{ setTarget }}>
+      {children}
+      <OrbitControls
+        ref={controlsRef}
+        enableZoom={false}
+        enablePan={false}
+        maxPolarAngle={Math.PI / 2.2}
+        minPolarAngle={Math.PI / 4}
+        maxAzimuthAngle={Math.PI / 3}
+        minAzimuthAngle={-Math.PI / 3}
+        onEnd={handleControlsChange}
+      />
+    </CameraTargetContext.Provider>
+  );
+}
+
+function useCameraTarget() {
+  return React.useContext(CameraTargetContext);
+}
+
 function Scene({ onBuildingClick, onFirePitClick, onInteraction }: { onBuildingClick: (id: string) => void; onFirePitClick: () => void; onInteraction?: () => void }) {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
+  const [isNarrowScreen, setIsNarrowScreen] = useState(false);
 
   useEffect(() => {
-    const mql = window.matchMedia('(max-width: 640px)');
-    const update = (e: MediaQueryListEvent | MediaQueryList) => setIsMobile(e.matches);
-    update(mql);
-    mql.addEventListener('change', update);
-    return () => mql.removeEventListener('change', update);
+    const mqlTablet = window.matchMedia('(max-width: 1024px)');
+    const mqlNarrow = window.matchMedia('(max-width: 1299px)');
+
+    const updateTablet = (e: MediaQueryListEvent | MediaQueryList) => setIsMobileOrTablet(e.matches);
+    const updateNarrow = (e: MediaQueryListEvent | MediaQueryList) => setIsNarrowScreen(e.matches);
+
+    updateTablet(mqlTablet);
+    updateNarrow(mqlNarrow);
+
+    mqlTablet.addEventListener('change', updateTablet);
+    mqlNarrow.addEventListener('change', updateNarrow);
+
+    return () => {
+      mqlTablet.removeEventListener('change', updateTablet);
+      mqlNarrow.removeEventListener('change', updateNarrow);
+    };
   }, []);
 
-  const cameraPosition: [number, number, number] = isMobile
+  const cameraPosition: [number, number, number] = isNarrowScreen
     ? [8.620148792505306, 3.7640507683034587, 8.690509571291406]
-    : [8.39287207501218, 2.3046168219937093, 9.394064063878695]; //[8, 6, 8];
+    : // [8.39287207501218, 2.3046168219937093, 9.394064063878695];
+    [7.796104494559256, 2.3031519840987134, 9.895263798810397]; //[8, 6, 8];
 
   return (
     <>
@@ -1384,7 +1518,7 @@ function Scene({ onBuildingClick, onFirePitClick, onInteraction }: { onBuildingC
       <fog attach="fog" args={['#05080a', 15, 35]} />
 
       {/* Isometric-style camera angle */}
-      <PerspectiveCamera makeDefault position={cameraPosition} fov={40} />
+      <PerspectiveCamera key={isNarrowScreen ? 'narrow' : 'wide'} makeDefault position={cameraPosition} fov={40} />
 
       {/* Lighting */}
       <ambientLight intensity={0.4} />
@@ -1406,37 +1540,30 @@ function Scene({ onBuildingClick, onFirePitClick, onInteraction }: { onBuildingC
         color="#6688ff"
       />
 
-      <Suspense fallback={null}>
-        <Ground />
-        <Road />
-        <Plaza onFirePitClick={onFirePitClick} onInteraction={onInteraction} />
-        <StreetLamps />
-        <BackgroundBuildings />
-        {/* Shop building on this side of the road */}
-        <group position={[7, 0.5, 7.5]}>
-          <mesh position={[0, 0.215, 0]} castShadow receiveShadow>
-            <boxGeometry args={[1, 0.7, 1]} />
-            <meshStandardMaterial color="#162029" roughness={0.8} metalness={0.2} />
-          </mesh>
-          {/* Roof decoration */}
-          <mesh position={[0, 0.55, 0]} castShadow>
-            <boxGeometry args={[1.1, 0.1, 1.1]} />
-            <meshStandardMaterial color="#3a2a12" metalness={0.15} roughness={0.85} />
-          </mesh>
-        </group>
-        <Clouds />
-        <Snow />
-        <Buildings onBuildingClick={onBuildingClick} />
-      </Suspense>
-
-      <OrbitControls
-        enableZoom={false}
-        enablePan={false}
-        maxPolarAngle={Math.PI / 2.2}
-        minPolarAngle={Math.PI / 4}
-        maxAzimuthAngle={Math.PI / 3}
-        minAzimuthAngle={-Math.PI / 3}
-      />
+      <CameraController initialCameraPosition={cameraPosition} isMobile={isMobileOrTablet}>
+        <Suspense fallback={null}>
+          <Ground />
+          <Road />
+          <Plaza onFirePitClick={onFirePitClick} onInteraction={onInteraction} />
+          <StreetLamps />
+          <BackgroundBuildings />
+          {/* Shop building on this side of the road */}
+          <group position={[7, 0.5, 7.5]}>
+            <mesh position={[0, 0.215, 0]} castShadow receiveShadow>
+              <boxGeometry args={[1, 0.7, 1]} />
+              <meshStandardMaterial color="#162029" roughness={0.8} metalness={0.2} />
+            </mesh>
+            {/* Roof decoration */}
+            <mesh position={[0, 0.55, 0]} castShadow>
+              <boxGeometry args={[1.1, 0.1, 1.1]} />
+              <meshStandardMaterial color="#3a2a12" metalness={0.15} roughness={0.85} />
+            </mesh>
+          </group>
+          <Clouds />
+          <Snow />
+          <Buildings onBuildingClick={onBuildingClick} />
+        </Suspense>
+      </CameraController>
     </>
   );
 }

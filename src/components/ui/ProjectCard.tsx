@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Project } from '@/lib/projects';
 
 interface ProjectCardProps {
@@ -11,6 +12,15 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project, index }: ProjectCardProps) {
+  const router = useRouter();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Save scroll position before navigating
+    sessionStorage.setItem('scrollPosition', window.scrollY.toString());
+    router.push(`/projects/${project.id}`);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 50 }}
@@ -22,7 +32,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
         ease: [0.21, 0.47, 0.32, 0.98],
       }}
     >
-      <Link href={`/projects/${project.id}`}>
+      <Link href={`/projects/${project.id}`} onClick={handleClick}>
         <motion.div
           className="group relative overflow-hidden rounded-3xl bg-[#0a1414] cursor-pointer"
           whileHover={{ scale: 1.02 }}
