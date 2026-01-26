@@ -22,36 +22,20 @@ function Tooltip({ children, visible }: { children: React.ReactNode; visible: bo
   );
 }
 
-// Navigation tooltip with countdown and cancel
-function NavigationTooltip({
+// Brief navigation flash message
+function NavigationFlash({
   visible,
   destination,
-  countdown,
-  onCancel,
 }: {
   visible: boolean;
   destination: string;
-  countdown: number;
-  onCancel: () => void;
 }) {
   if (!visible) return null;
 
   return (
     <Html center>
-      <div className="flex flex-col items-center gap-3 px-5 py-4 mb-20 bg-black/95 text-white text-sm rounded-xl whitespace-nowrap backdrop-blur-md border border-white/20 shadow-lg">
-        <span className="text-zinc-300">Navigating to {destination}...</span>
-        <div className="w-12 h-12 rounded-full border-2 border-[#0fb0c8] flex items-center justify-center">
-          <span className="text-2xl font-bold text-[#0fb0c8]">{countdown}</span>
-        </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onCancel();
-          }}
-          className="px-4 py-1.5 text-xs bg-white/10 hover:bg-white/20 rounded-full transition-colors cursor-pointer"
-        >
-          Cancel
-        </button>
+      <div className="flex flex-col items-center gap-2 px-5 py-3 mb-20 bg-black/95 text-white text-sm rounded-xl whitespace-nowrap backdrop-blur-md border border-white/20 shadow-lg animate-fade-in">
+        <span className="text-zinc-100">Navigating to {destination}...</span>
       </div>
     </Html>
   );
@@ -526,7 +510,6 @@ function TelephoneBooth({
 }) {
   const [hovered, setHovered] = useState(false);
   const [navActive, setNavActive] = useState(false);
-  const [countdown, setCountdown] = useState(3);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const groupRef = useRef<THREE.Group>(null);
   const { setTarget } = useCameraTarget();
@@ -534,47 +517,33 @@ function TelephoneBooth({
   const frameColor = hovered ? '#d10000' : '#b00000';
   const glow = hovered ? 0.45 : 0.18;
 
-  // Navigation countdown
+  // Navigate after brief flash
   useEffect(() => {
-    if (navActive && countdown > 0) {
-      timerRef.current = setTimeout(() => {
-        setCountdown(c => c - 1);
-      }, 1000);
-    } else if (navActive && countdown === 0) {
+    if (navActive) {
       timerRef.current = setTimeout(() => {
         const contactSection = document.getElementById('contact');
         if (contactSection) {
           contactSection.scrollIntoView({ behavior: 'smooth' });
         }
-        setTarget(null, 0.8); // Reset camera view after scroll starts
+        setTarget(null, 0.8);
         setNavActive(false);
-        setCountdown(3);
-      }, 0);
+      }, 1000);
     }
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [navActive, countdown, setTarget]);
+  }, [navActive, setTarget]);
 
   const handleClick = () => {
     if (!navActive) {
       onInteraction?.();
       setNavActive(true);
-      setCountdown(3);
-      // Set camera to look at this element
       if (groupRef.current) {
         const worldPos = new THREE.Vector3();
         groupRef.current.getWorldPosition(worldPos);
         setTarget([worldPos.x, worldPos.y + 0.5, worldPos.z]);
       }
     }
-  };
-
-  const cancelNav = () => {
-    setNavActive(false);
-    setCountdown(3);
-    setTarget(null); // Reset camera view
-    if (timerRef.current) clearTimeout(timerRef.current);
   };
 
   const glassMat = useMemo(
@@ -622,11 +591,9 @@ function TelephoneBooth({
       {/* Tooltip */}
       <group position={[0, 1.85, 0]}>
         <Tooltip visible={hovered && !navActive}>Contact</Tooltip>
-        <NavigationTooltip
+        <NavigationFlash
           visible={navActive}
           destination="Contact"
-          countdown={countdown}
-          onCancel={cancelNav}
         />
       </group>
 
@@ -915,11 +882,9 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
   const [fireHover, setFireHover] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Navigation countdown states
+  // Navigation states
   const [fireNavActive, setFireNavActive] = useState(false);
-  const [fireCountdown, setFireCountdown] = useState(3);
   const [deskNavActive, setDeskNavActive] = useState(false);
-  const [deskCountdown, setDeskCountdown] = useState(3);
   const fireTimerRef = useRef<NodeJS.Timeout | null>(null);
   const deskTimerRef = useRef<NodeJS.Timeout | null>(null);
   const firePitRef = useRef<THREE.Group>(null);
@@ -948,52 +913,40 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
     return () => mql.removeEventListener('change', update);
   }, []);
 
-  // Fire pit navigation countdown
+  // Fire pit navigation - brief flash then navigate
   useEffect(() => {
-    if (fireNavActive && fireCountdown > 0) {
-      fireTimerRef.current = setTimeout(() => {
-        setFireCountdown(c => c - 1);
-      }, 1000);
-    } else if (fireNavActive && fireCountdown === 0) {
+    if (fireNavActive) {
       fireTimerRef.current = setTimeout(() => {
         onFirePitClick();
-        setTarget(null, 0.8); // Reset camera view after scroll starts
+        setTarget(null, 0.8);
         setFireNavActive(false);
-        setFireCountdown(3);
-      }, 0);
+      }, 1000);
     }
     return () => {
       if (fireTimerRef.current) clearTimeout(fireTimerRef.current);
     };
-  }, [fireNavActive, fireCountdown, onFirePitClick, setTarget]);
+  }, [fireNavActive, onFirePitClick, setTarget]);
 
-  // Desk navigation countdown
+  // Desk navigation - brief flash then navigate
   useEffect(() => {
-    if (deskNavActive && deskCountdown > 0) {
-      deskTimerRef.current = setTimeout(() => {
-        setDeskCountdown(c => c - 1);
-      }, 1000);
-    } else if (deskNavActive && deskCountdown === 0) {
+    if (deskNavActive) {
       deskTimerRef.current = setTimeout(() => {
         const aboutSection = document.getElementById('about');
         if (aboutSection) {
           aboutSection.scrollIntoView({ behavior: 'smooth' });
         }
-        setTarget(null, 0.8); // Reset camera view after scroll starts
+        setTarget(null, 0.8);
         setDeskNavActive(false);
-        setDeskCountdown(3);
-      }, 0);
+      }, 1000);
     }
     return () => {
       if (deskTimerRef.current) clearTimeout(deskTimerRef.current);
     };
-  }, [deskNavActive, deskCountdown, setTarget]);
+  }, [deskNavActive, setTarget]);
 
   const handleFirePitClick = () => {
     onInteraction?.();
     setFireNavActive(true);
-    setFireCountdown(3);
-    // Set camera to look at fire pit
     if (firePitRef.current) {
       const worldPos = new THREE.Vector3();
       firePitRef.current.getWorldPosition(worldPos);
@@ -1001,30 +954,14 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
     }
   };
 
-  const cancelFireNav = () => {
-    setFireNavActive(false);
-    setFireCountdown(3);
-    setTarget(null); // Reset camera view
-    if (fireTimerRef.current) clearTimeout(fireTimerRef.current);
-  };
-
   const handleHelpClick = () => {
     onInteraction?.();
     setDeskNavActive(true);
-    setDeskCountdown(3);
-    // Set camera to look at desk
     if (deskRef.current) {
       const worldPos = new THREE.Vector3();
       deskRef.current.getWorldPosition(worldPos);
       setTarget([worldPos.x, worldPos.y + 0.5, worldPos.z]);
     }
-  };
-
-  const cancelDeskNav = () => {
-    setDeskNavActive(false);
-    setDeskCountdown(3);
-    setTarget(null); // Reset camera view
-    if (deskTimerRef.current) clearTimeout(deskTimerRef.current);
   };
 
   const deskPosition: [number, number, number] = isMobile ? [4.15, 0.12, -2.55] : [5.88, 0.12, -2.75];
@@ -1087,11 +1024,9 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
         {/* Tooltip */}
         <group position={[0, 1.2, 0]}>
           <Tooltip visible={fireHover && !fireNavActive}>Projects</Tooltip>
-          <NavigationTooltip
+          <NavigationFlash
             visible={fireNavActive}
             destination="Projects"
-            countdown={fireCountdown}
-            onCancel={cancelFireNav}
           />
         </group>
 
@@ -1185,11 +1120,9 @@ function Plaza({ onFirePitClick, onInteraction }: { onFirePitClick: () => void; 
         {/* Tooltip */}
         <group position={[0, 0.85, 0]}>
           <Tooltip visible={deskHover && !deskNavActive}>About</Tooltip>
-          <NavigationTooltip
+          <NavigationFlash
             visible={deskNavActive}
             destination="About"
-            countdown={deskCountdown}
-            onCancel={cancelDeskNav}
           />
         </group>
 
@@ -1400,6 +1333,7 @@ const CameraTargetContext = React.createContext<{
 // Initial target position (0, 0, 0) - the default OrbitControls target
 const INITIAL_TARGET: [number, number, number] = [0, 0, 0];
 
+
 function CameraController({ children, initialCameraPosition, isMobile }: { children: React.ReactNode; initialCameraPosition: [number, number, number]; isMobile: boolean }) {
   const controlsRef = useRef<React.ComponentRef<typeof OrbitControls>>(null);
   const isAnimating = useRef(false);
@@ -1453,15 +1387,6 @@ function CameraController({ children, initialCameraPosition, isMobile }: { child
     }
   };
 
-  // Log camera position on change
-  const handleControlsChange = () => {
-    if (controlsRef.current) {
-      const camera = controlsRef.current.object;
-      console.log('Camera position:', [camera.position.x, camera.position.y, camera.position.z]);
-      console.log('Camera target:', [controlsRef.current.target.x, controlsRef.current.target.y, controlsRef.current.target.z]);
-    }
-  };
-
   return (
     <CameraTargetContext.Provider value={{ setTarget }}>
       {children}
@@ -1473,7 +1398,6 @@ function CameraController({ children, initialCameraPosition, isMobile }: { child
         minPolarAngle={Math.PI / 4}
         maxAzimuthAngle={Math.PI / 3}
         minAzimuthAngle={-Math.PI / 3}
-        onEnd={handleControlsChange}
       />
     </CameraTargetContext.Provider>
   );
@@ -1507,9 +1431,9 @@ function Scene({ onBuildingClick, onFirePitClick, onInteraction }: { onBuildingC
   }, []);
 
   const cameraPosition: [number, number, number] = isNarrowScreen
-    ? [8.620148792505306, 3.7640507683034587, 8.690509571291406]
+    ? [9.475217961097949, 1.822519180588045, 8.420134703559096]
     : // [8.39287207501218, 2.3046168219937093, 9.394064063878695];
-    [7.796104494559256, 2.3031519840987134, 9.895263798810397]; //[8, 6, 8];
+    [7.761729303312955, 2.0392145430387685, 9.979837787737042]; //[8, 6, 8];
 
   return (
     <>
