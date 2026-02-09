@@ -27,7 +27,10 @@ export const projects: Project[] = [
     color: '#10B981',
     accentColor: '#34D399',
     type: 'app',
-    status: 'coming-soon',
+    status: 'released',
+    links: {
+      playStore: 'https://play.google.com/store/apps/details?id=us.ephileo.roamates',
+    },
   },
   {
     id: 'chain-reaction',
